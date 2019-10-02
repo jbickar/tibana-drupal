@@ -12,11 +12,15 @@ config:
 env_file:
   - .env
 services:
+  # Selenium Firefox container. Can run Behat tests against the browser.
   selenium:
+    # Allows you to pass through any Docker Compose config to a service.
     type: compose
     services:
       image: selenium/standalone-firefox:3.141.59-vanadium
       user: seluser
+      # Finding the command can be tricky. Look at the Docker file for the
+      # image you're using to see what it runs to start.
       command: /opt/bin/entry_point.sh
       ports:
         - '4444'
@@ -24,16 +28,20 @@ services:
         - '/dev/shm:/dev/shm'
       environment:
         START_XVBF: 'false'
+  # This is a service to build your theme files
   theme:
     type: node
+    # Watcher. Runs while service is running.
     command: cd /app/web/themes/custom/${CLIENT_NAME}_theme/ && yarn dev
     build:
+      # Only runs at build, then exits.
       - cd /app/web/themes/custom/${CLIENT_NAME}_theme/ && yarn install
   appserver:
     build:
     - "mkdir -p /var/www/.platformsh/bin"
     - "curl -fsSL -o /var/www/.platformsh/bin/platform https://github.com/platformsh/platformsh-cli/releases/download/v3.40.2/platform.phar"
     - "chmod ug+x /var/www/.platformsh/bin/platform"
+    # This runs composer install when the service starts up
     - "cd /app && composer install -n"
     overrides:
       environment:
@@ -43,6 +51,9 @@ services:
         MYSQL_PORT: 3306
         MYSQL_USER: drupal8
         MYSQL_PASSWORD: drupal8
+# Specifies commands that are available to lando.
+# Can add new ones without rebuilding.
+# Have to rebuild or "lando --clear" to catch changes to them.
 tooling:
   robo:
     service: appserver
@@ -53,6 +64,7 @@ tooling:
   pull:
     service: appserver
     description: Pull the prod instance
+    # Nice if you need to touch multiple services. Runs them sequentially.
     cmd:
       - appserver: /var/www/.platformsh/bin/platform auth:info || /var/www/.platformsh/bin/platform auth:login
       - appserver: /var/www/.platformsh/bin/platform db:dump --gzip --file=/app/dump.sql.gz --environment=master
