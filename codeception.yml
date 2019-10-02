@@ -14,6 +14,7 @@ suites:
                     server:
                       SERVER_PORT: null
                       REQUEST_URI: '/'
+                      # This is the service name from "lando info"
                       REMOTE_ADDR: 'appserver_nginx'
                       HTTP_HOST: 'tibana-drupal.lndo.site'
                 - DrupalUser:

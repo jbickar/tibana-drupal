@@ -11,6 +11,10 @@ config:
   via: nginx
 env_file:
   - .env
+# Proxying for Browsersync.
+proxy:
+  node:
+    - bs-tibana-drupal.lndo.site:3000
 services:
   # Selenium Firefox container. Can run Behat tests against the browser.
   selenium:
